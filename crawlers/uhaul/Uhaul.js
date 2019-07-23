@@ -8,7 +8,7 @@ const Uhaul = function () {
   }
 }
 
-Uhaul.prototype.populateFormOnIndexPage = async function () {
+Uhaul.prototype.populateFormOnIndexPage = async function (pickUpLocation, dropOffLocation, date) {
   try {
     const browser = await puppeteer.launch({
       headless: false,
@@ -16,12 +16,12 @@ Uhaul.prototype.populateFormOnIndexPage = async function () {
     })
     const page = await browser.newPage()
     await page.goto(this.url)
-    await page.type('#PickupLocation-TruckOnly', '80301')
-    await page.type('#DropoffLocation-TruckOnly', '85718')
-    await page.type('#PickupDate-TruckOnly', '09/02/2019')
+    await page.type('#PickupLocation-TruckOnly', pickUpLocation)
+    await page.type('#DropoffLocation-TruckOnly', dropOffLocation)
+    await page.type('#PickupDate-TruckOnly', date)
     // await page.click('#EquipmentSearch .button-confirm')
     // await page.waitForNavigation()
-    const [response] = await Promise.all([
+    await Promise.all([
       page.waitForNavigation(), // The promise resolves after navigation has finished
       page.click('#EquipmentSearch .button-confirm')
       // Clicking the link will indirectly cause a navigation
@@ -32,12 +32,15 @@ Uhaul.prototype.populateFormOnIndexPage = async function () {
     this.priceObj.uhaul.fifteenFootTruck = await $('#formProcessRequest_DC > div > dl > dd:nth-child(2) > div > b').text().trim()
     this.priceObj.uhaul.twentyFootTruck = await $('#formProcessRequest_TT > div > dl > dd:nth-child(2) > div > b').text().trim()
     this.priceObj.uhaul.twentySixFootTruck = await $('#formProcessRequest_JH > div > dl > dd:nth-child(2) > div > b').text().trim()
+    console.log(this.priceObj)
     browser.close()
   } catch (err) {
     console.error(err)
   }
 }
 
+// const blah = new Uhaul()
+// blah.populateFormOnIndexPage()
 module.exports = {
   Uhaul
 }

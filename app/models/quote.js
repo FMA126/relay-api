@@ -5,17 +5,21 @@ const quoteSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  startZip: {
+  pickUpLocation: {
     type: String,
     required: true
   },
-  endZip: {
+  dropOffLocation: {
     type: String,
     required: true
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+    required: true
+  },
+  prices: {
+    type: Array,
     required: true
   }
 }, {

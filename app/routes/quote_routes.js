@@ -32,33 +32,76 @@ const crawler = require('../../crawlers/uhaul/Uhaul')
 const Uhaul = crawler.Uhaul
 const crawlerPenske = require('../../crawlers/penske/Penske')
 const Penske = crawlerPenske.Penske
+const crawlerBudget = require('../../crawlers/budget/Budget')
+const Budget = crawlerBudget.Budget
 
 // Crawler
 router.post('/quotes', requireToken, (req, res, next) => {
   // set owner of new quote to be current user
   req.body.quote.owner = req.user.id
-  const UhaulCrawler = new Uhaul()
-  const PenskeCrawler = new Penske()
-  let prices = {}
-  UhaulCrawler.populateFormOnIndexPage()
-    .then(res => {
-      prices = Object.assign(req.body.quote, UhaulCrawler.priceObj)
-      console.log(prices)
-      return res
-    })
-    .catch(console.error)
-  PenskeCrawler.populateFormOnIndexPage()
-    .then(res => {
-      // const tester = Object.assign(prices, PenskeCrawler.priceObj)
-      console.log(PenskeCrawler.priceObj)
-      return res
-    })
-    .catch(console.error)
+  let databaseObj = {}
+  databaseObj = req.body.quote
+  let prices = []
+  const runCrawlers = () => {
+    const UhaulCrawler = new Uhaul()
+    const PenskeCrawler = new Penske()
+    const BudgetCrawler = new Budget()
+    const {pickUpLocation, dropOffLocation, pickUpDate} = req.body.quote
 
-  // // respond with status 200 and JSON of the quotes
-  // .then(quotes => res.status(200).json({ quotes: quotes }))
-  // // if an error occurs, pass it to the handler
-  // .catch(next)
+    UhaulCrawler.populateFormOnIndexPage(pickUpLocation, dropOffLocation, pickUpDate)
+      .then(res => {
+        prices.push(UhaulCrawler.priceObj)
+        return res
+      })
+      .catch(console.error)
+    PenskeCrawler.populateFormOnIndexPage(pickUpLocation, dropOffLocation, pickUpDate)
+      .then(res => {
+        // const tester = Object.assign(prices, PenskeCrawler.priceObj)
+        prices.push(PenskeCrawler.priceObj)
+        return res
+      })
+      .then(res => {
+        databaseObj.prices = prices
+        console.log(databaseObj)
+        return res
+      })
+      .then(response => {
+        Quote.create(databaseObj)
+        // respond to succesful `create` with status 201 and JSON of new "quote"
+          .then(quote => {
+            res.status(201).json({ quote: quote.toObject() })
+          })
+          .catch(next)
+      })
+      .catch(console.error)
+    BudgetCrawler.populateFormOnIndexPage(pickUpLocation, dropOffLocation, pickUpDate)
+      .then(res => {
+        // const tester = Object.assign(prices, PenskeCrawler.priceObj)
+        prices.push(BudgetCrawler.priceObj)
+        return res
+      })
+      .catch(console.error)
+  }
+  const finalPrices = async function () {
+    try {
+      await runCrawlers()
+    } catch (err) {
+      console.error(err)
+    }
+  }
+  //   finally {
+  //     Quote.create(databaseObj)
+  //     // respond to succesful `create` with status 201 and JSON of new "quote"
+  //       .then(quote => {
+  //         res.status(201).json({ quote: quote.toObject() })
+  //       })
+  //     // if an error occurs, pass it off to our error handler
+  //     // the error handler needs the error message and the `res` object so that it
+  //     // can send an error message back to the client
+  //       .catch(next)
+  //   }
+  // }
+  finalPrices()
 })
 
 // INDEX

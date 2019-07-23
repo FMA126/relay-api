@@ -11,8 +11,8 @@ curl "${API}${URL_PATH}" \
   --data '{
     "quote": {
       "pickUpDate": "'"${DATE}"'",
-      "startZip": "'"${START}"'",
-      "endZip": "'"${END}"'"
+      "dropOffLocation": "'"${START}"'",
+      "pickUpLocation": "'"${END}"'"
     }
   }'
 
