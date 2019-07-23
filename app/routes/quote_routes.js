@@ -69,7 +69,7 @@ router.post('/quotes', requireToken, (req, res, next) => {
         Quote.create(databaseObj)
         // respond to succesful `create` with status 201 and JSON of new "quote"
           .then(quote => {
-            res.status(201).json({ quote: quote.toObject() })
+            return quote
           })
           .catch(next)
       })
@@ -88,19 +88,22 @@ router.post('/quotes', requireToken, (req, res, next) => {
     } catch (err) {
       console.error(err)
     }
+    try {
+      Quote.find()
+        .then(quotes => {
+          // `quotes` will be an array of Mongoose documents
+          // we want to convert each one to a POJO, so we use `.map` to
+          // apply `.toObject` to each one
+          return quotes.map(quote => quote.toObject())
+        })
+        // respond with status 200 and JSON of the quotes
+        .then(quotes => res.status(200).json({ quotes: quotes }))
+        // if an error occurs, pass it to the handler
+        .catch(next)
+    } catch (err) {
+      console.error(err)
+    }
   }
-  //   finally {
-  //     Quote.create(databaseObj)
-  //     // respond to succesful `create` with status 201 and JSON of new "quote"
-  //       .then(quote => {
-  //         res.status(201).json({ quote: quote.toObject() })
-  //       })
-  //     // if an error occurs, pass it off to our error handler
-  //     // the error handler needs the error message and the `res` object so that it
-  //     // can send an error message back to the client
-  //       .catch(next)
-  //   }
-  // }
   finalPrices()
 })
 

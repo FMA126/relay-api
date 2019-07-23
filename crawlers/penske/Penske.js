@@ -11,7 +11,6 @@ const Penske = function () {
 Penske.prototype.populateFormOnIndexPage = async function (pickUpLocation, dropOffLocation, date) {
   try {
     const browser = await puppeteer.launch({
-      headless: false,
       slowMo: 250
     })
     const page = await browser.newPage()
