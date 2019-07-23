@@ -1,11 +1,19 @@
-#!/bin/sh
+#!/bin/bash
 
 API="http://localhost:4741"
-URL_PATH="/crawler"
+URL_PATH="/quotes"
 
-curl "${API}${URL_PATH}/${ID}" \
+curl "${API}${URL_PATH}" \
   --include \
-  --request GET \
-  --header "Authorization: Bearer ${TOKEN}"
+  --request POST \
+  --header "Content-Type: application/json" \
+  --header "Authorization: Bearer ${TOKEN}" \
+  --data '{
+    "quote": {
+      "pickUpDate": "'"${DATE}"'",
+      "startZip": "'"${START}"'",
+      "endZip": "'"${END}"'"
+    }
+  }'
 
 echo

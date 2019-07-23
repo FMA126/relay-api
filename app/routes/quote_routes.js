@@ -28,16 +28,26 @@ const requireToken = passport.authenticate('bearer', { session: false })
 const router = express.Router()
 
 // require uhaul crawler
-const uhaul = require('../../crawlers/uhaul/uhaul_crawler')
+const crawler = require('../../crawlers/uhaul/Uhaul')
+const Uhaul = crawler.Uhaul
 
 // Crawler
-router.get('/crawler', requireToken, (req, res, next) => {
-  const results = uhaul('https://www.uhaul.com')
+router.post('/quotes', requireToken, (req, res, next) => {
+  // set owner of new quote to be current user
+  req.body.quote.owner = req.user.id
+  const UhaulCrawler = new Uhaul()
+  UhaulCrawler.populateFormOnIndexPage()
+    .then(res => {
+      const tester = Object.assign(req.body.quote, UhaulCrawler.priceObj)
+      console.log(tester)
+      return res
+    })
+    .catch(console.error)
+
   // // respond with status 200 and JSON of the quotes
   // .then(quotes => res.status(200).json({ quotes: quotes }))
   // // if an error occurs, pass it to the handler
   // .catch(next)
-  console.log(results)
 })
 
 // INDEX
@@ -68,22 +78,22 @@ router.get('/quotes/:id', requireToken, (req, res, next) => {
     .catch(next)
 })
 
-// CREATE
-// POST /quotes
-router.post('/quotes', requireToken, (req, res, next) => {
-  // set owner of new quote to be current user
-  req.body.quote.owner = req.user.id
-
-  Quote.create(req.body.quote)
-    // respond to succesful `create` with status 201 and JSON of new "quote"
-    .then(quote => {
-      res.status(201).json({ quote: quote.toObject() })
-    })
-    // if an error occurs, pass it off to our error handler
-    // the error handler needs the error message and the `res` object so that it
-    // can send an error message back to the client
-    .catch(next)
-})
+// // CREATE
+// // POST /quotes
+// router.post('/quotes', requireToken, (req, res, next) => {
+//   // set owner of new quote to be current user
+//   req.body.quote.owner = req.user.id
+//
+//   Quote.create(req.body.quote)
+//     // respond to succesful `create` with status 201 and JSON of new "quote"
+//     .then(quote => {
+//       res.status(201).json({ quote: quote.toObject() })
+//     })
+//     // if an error occurs, pass it off to our error handler
+//     // the error handler needs the error message and the `res` object so that it
+//     // can send an error message back to the client
+//     .catch(next)
+// })
 
 // CREATE
 // POST start crawler
