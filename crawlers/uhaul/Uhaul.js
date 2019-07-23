@@ -3,7 +3,9 @@ const cheerio = require('cheerio')
 
 const Uhaul = function () {
   this.url = 'https://www.uhaul.com'
-  this.priceObj = {}
+  this.priceObj = {
+    uhaul: {}
+  }
 }
 
 Uhaul.prototype.populateFormOnIndexPage = async function () {
@@ -26,10 +28,10 @@ Uhaul.prototype.populateFormOnIndexPage = async function () {
     ])
     const html = await page.evaluate(() => document.body.innerHTML)
     const $ = await cheerio.load(html)
-    this.priceObj.tenFootTruck = await $('#formProcessRequest_TM > div > dl > dd:nth-child(2) > div > b').text().trim()
-    this.priceObj.fifteenFootTruck = await $('#formProcessRequest_DC > div > dl > dd:nth-child(2) > div > b').text().trim()
-    this.priceObj.twentyFootTruck = await $('#formProcessRequest_TT > div > dl > dd:nth-child(2) > div > b').text().trim()
-    this.priceObj.twentySixFootTruck = await $('#formProcessRequest_JH > div > dl > dd:nth-child(2) > div > b').text().trim()
+    this.priceObj.uhaul.tenFootTruck = await $('#formProcessRequest_TM > div > dl > dd:nth-child(2) > div > b').text().trim()
+    this.priceObj.uhaul.fifteenFootTruck = await $('#formProcessRequest_DC > div > dl > dd:nth-child(2) > div > b').text().trim()
+    this.priceObj.uhaul.twentyFootTruck = await $('#formProcessRequest_TT > div > dl > dd:nth-child(2) > div > b').text().trim()
+    this.priceObj.uhaul.twentySixFootTruck = await $('#formProcessRequest_JH > div > dl > dd:nth-child(2) > div > b').text().trim()
     browser.close()
   } catch (err) {
     console.error(err)

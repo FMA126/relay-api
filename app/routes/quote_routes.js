@@ -27,19 +27,30 @@ const requireToken = passport.authenticate('bearer', { session: false })
 // instantiate a router (mini app that only handles routes)
 const router = express.Router()
 
-// require uhaul crawler
+// require crawlers
 const crawler = require('../../crawlers/uhaul/Uhaul')
 const Uhaul = crawler.Uhaul
+const crawlerPenske = require('../../crawlers/penske/Penske')
+const Penske = crawlerPenske.Penske
 
 // Crawler
 router.post('/quotes', requireToken, (req, res, next) => {
   // set owner of new quote to be current user
   req.body.quote.owner = req.user.id
   const UhaulCrawler = new Uhaul()
+  const PenskeCrawler = new Penske()
+  let prices = {}
   UhaulCrawler.populateFormOnIndexPage()
     .then(res => {
-      const tester = Object.assign(req.body.quote, UhaulCrawler.priceObj)
-      console.log(tester)
+      prices = Object.assign(req.body.quote, UhaulCrawler.priceObj)
+      console.log(prices)
+      return res
+    })
+    .catch(console.error)
+  PenskeCrawler.populateFormOnIndexPage()
+    .then(res => {
+      // const tester = Object.assign(prices, PenskeCrawler.priceObj)
+      console.log(PenskeCrawler.priceObj)
       return res
     })
     .catch(console.error)
