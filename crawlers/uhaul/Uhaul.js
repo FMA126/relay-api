@@ -11,6 +11,7 @@ const Uhaul = function () {
 Uhaul.prototype.populateFormOnIndexPage = async function (pickUpLocation, dropOffLocation, date) {
   try {
     const browser = await puppeteer.launch({
+      args: ['--no-sandbox'],
       slowMo: 100
     })
     const page = await browser.newPage()
