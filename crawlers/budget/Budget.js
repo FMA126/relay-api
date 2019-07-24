@@ -12,6 +12,7 @@ const Budget = function () {
 Budget.prototype.populateFormOnIndexPage = async function (pickUpLocation, dropOffLocation, date) {
   try {
     const browser = await puppeteer.launch({
+      headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
       slowMo: 250
     })
@@ -41,7 +42,7 @@ Budget.prototype.populateFormOnIndexPage = async function (pickUpLocation, dropO
 }
 
 // const blah = new Budget()
-// blah.populateFormOnIndexPage()
+// blah.populateFormOnIndexPage(
 module.exports = {
   Budget
 }
