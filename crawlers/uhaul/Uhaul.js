@@ -17,7 +17,6 @@ Uhaul.prototype.populateFormOnIndexPage = async function (pickUpLocation, dropOf
     })
     const page = await browser.newPage()
     await page.goto(this.url)
-    await console.log('hi from underneath Uhaul url')
     await page.type('#PickupLocation-TruckOnly', pickUpLocation)
     await page.type('#DropoffLocation-TruckOnly', dropOffLocation)
     await page.type('#PickupDate-TruckOnly', date)
@@ -35,7 +34,6 @@ Uhaul.prototype.populateFormOnIndexPage = async function (pickUpLocation, dropOf
     this.priceObj.uhaul.twentyFootTruck = await $('#formProcessRequest_TT > div > dl > dd:nth-child(2) > div > b').text().trim()
     this.priceObj.uhaul.twentySixFootTruck = await $('#formProcessRequest_JH > div > dl > dd:nth-child(2) > div > b').text().trim()
     console.log(this.priceObj)
-    await console.log('hi from underneath cheerio scraper')
     browser.close()
   } catch (err) {
     console.error(err)
