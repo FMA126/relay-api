@@ -24,9 +24,7 @@ const requester = async function () {
     const html = await axios({
       method: 'GET',
       url: `https://www.uhaul.com/Reservations/RatesTrucks/`,
-      headers: {
-        
-      }
+      headers: {}
     })
     // const check = await console.log(html.data)
     // const $ = await cheerio.load(html.data)

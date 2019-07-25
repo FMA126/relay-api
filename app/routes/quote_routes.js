@@ -47,14 +47,36 @@ router.post('/quotes', requireToken, (req, res, next) => {
     const PenskeCrawler = new Penske()
     const BudgetCrawler = new Budget()
     const {pickUpLocation, dropOffLocation, pickUpDate} = req.body.quote
+    const options = {
+      month: 'numeric',
+      day: 'numeric',
+      year: 'numeric'
+    }
+    const dateObj = new Date(pickUpDate)
+    const formattedDate = dateObj.toLocaleDateString(undefined, options)
 
-    UhaulCrawler.populateFormOnIndexPage(pickUpLocation, dropOffLocation, pickUpDate)
+    let today = new Date(pickUpDate)
+    let dd = today.getDate()
+
+    let mm = today.getMonth() + 1
+    const yyyy = today.getFullYear()
+    if (dd < 10) {
+      dd = '0' + dd
+    }
+
+    if (mm < 10) {
+      mm = '0' + mm
+    }
+
+    today = mm + '/' + dd + '/' + yyyy
+
+    UhaulCrawler.populateFormOnIndexPage(pickUpLocation, dropOffLocation, formattedDate)
       .then(res => {
         prices.push(UhaulCrawler.priceObj)
         return res
       })
       .catch(console.error)
-    PenskeCrawler.populateFormOnIndexPage(pickUpLocation, dropOffLocation, pickUpDate)
+    PenskeCrawler.populateFormOnIndexPage(pickUpLocation, dropOffLocation, today)
       .then(res => {
         // const tester = Object.assign(prices, PenskeCrawler.priceObj)
         prices.push(PenskeCrawler.priceObj)
@@ -74,7 +96,7 @@ router.post('/quotes', requireToken, (req, res, next) => {
           .catch(next)
       })
       .catch(console.error)
-    BudgetCrawler.populateFormOnIndexPage(pickUpLocation, dropOffLocation, pickUpDate)
+    BudgetCrawler.populateFormOnIndexPage(pickUpLocation, dropOffLocation, formattedDate)
       .then(res => {
         // const tester = Object.assign(prices, PenskeCrawler.priceObj)
         prices.push(BudgetCrawler.priceObj)
@@ -89,7 +111,7 @@ router.post('/quotes', requireToken, (req, res, next) => {
       console.error(err)
     }
     try {
-      Quote.find()
+      Quote.find({owner: req.user._id})
         .then(quotes => {
           // `quotes` will be an array of Mongoose documents
           // we want to convert each one to a POJO, so we use `.map` to
@@ -110,7 +132,7 @@ router.post('/quotes', requireToken, (req, res, next) => {
 // INDEX
 // GET /quotes
 router.get('/quotes', requireToken, (req, res, next) => {
-  Quote.find()
+  Quote.find({owner: req.user._id})
     .then(quotes => {
       // `quotes` will be an array of Mongoose documents
       // we want to convert each one to a POJO, so we use `.map` to
@@ -129,6 +151,10 @@ router.get('/quotes/:id', requireToken, (req, res, next) => {
   // req.params.id will be set based on the `:id` in the route
   Quote.findById(req.params.id)
     .then(handle404)
+    .then(item => {
+      requireOwnership(req, item)
+      return item
+    })
     // if `findById` is succesful, respond with 200 and "quote" JSON
     .then(quote => res.status(200).json({ quote: quote.toObject() }))
     // if an error occurs, pass it to the handler
@@ -152,52 +178,106 @@ router.get('/quotes/:id', requireToken, (req, res, next) => {
 //     .catch(next)
 // })
 
-// CREATE
-// POST start crawler
-// router.post('/quotes/crawl', requireToken, (req, res, next) => {
-//   // set owner of new quote to be current user
-//   req.body.quote.owner = req.user.id
-//
-//   const crawl = async () => {
-//     try {
-//       let results
-//       results = uhaul.populateFormOnIndexPage('https://www.uhaul.com')
-//       Quote.create(req.body.quote)
-//       // respond to succesful `create` with status 201 and JSON of new "quote"
-//         .then(quote => {
-//           res.status(201).json({ quote: quote.toObject() })
-//         })
-//       // if an error occurs, pass it off to our error handler
-//       // the error handler needs the error message and the `res` object so that it
-//       // can send an error message back to the client
-//         .catch(next)
-//     } catch (err) {
-//       console.error(err)
-//     }
-//   }
-// })
-
 // UPDATE
 // PATCH /quotes/5a7db6c74d55bc51bdf39793
 router.patch('/quotes/:id', requireToken, removeBlanks, (req, res, next) => {
   // if the client attempts to change the `owner` property by including a new
   // owner, prevent that by deleting that key/value pair
   delete req.body.quote.owner
+  let databaseObj = {}
+  databaseObj = req.body.quote
+  let prices = []
+  const runCrawlers = () => {
+    const UhaulCrawler = new Uhaul()
+    const PenskeCrawler = new Penske()
+    const BudgetCrawler = new Budget()
+    const {pickUpLocation, dropOffLocation, pickUpDate} = req.body.quote
+    const options = {
+      month: 'numeric',
+      day: 'numeric',
+      year: 'numeric'
+    }
+    const dateObj = new Date(pickUpDate)
+    const formattedDate = dateObj.toLocaleDateString(undefined, options)
 
-  Quote.findById(req.params.id)
-    .then(handle404)
-    .then(quote => {
-      // pass the `req` object and the Mongoose record to `requireOwnership`
-      // it will throw an error if the current user isn't the owner
-      requireOwnership(req, quote)
+    let today = new Date(pickUpDate)
+    let dd = today.getDate()
 
-      // pass the result of Mongoose's `.update` to the next `.then`
-      return quote.update(req.body.quote)
-    })
-    // if that succeeded, return 204 and no JSON
-    .then(() => res.sendStatus(204))
-    // if an error occurs, pass it to the handler
-    .catch(next)
+    let mm = today.getMonth() + 1
+    const yyyy = today.getFullYear()
+    if (dd < 10) {
+      dd = '0' + dd
+    }
+
+    if (mm < 10) {
+      mm = '0' + mm
+    }
+
+    today = mm + '/' + dd + '/' + yyyy
+
+    UhaulCrawler.populateFormOnIndexPage(pickUpLocation, dropOffLocation, formattedDate)
+      .then(res => {
+        prices.push(UhaulCrawler.priceObj)
+        return res
+      })
+      .catch(console.error)
+    PenskeCrawler.populateFormOnIndexPage(pickUpLocation, dropOffLocation, today)
+      .then(res => {
+        // const tester = Object.assign(prices, PenskeCrawler.priceObj)
+        prices.push(PenskeCrawler.priceObj)
+        return res
+      })
+      .then(res => {
+        databaseObj.prices = prices
+        console.log(databaseObj)
+        return res
+      })
+      .then(response => {
+        Quote.findById(req.params.id)
+          .then(handle404)
+          .then(quote => {
+            // pass the `req` object and the Mongoose record to `requireOwnership`
+            // it will throw an error if the current user isn't the owner
+            requireOwnership(req, quote)
+
+            // pass the result of Mongoose's `.update` to the next `.then`
+            return quote.update(req.body.quote)
+          })
+          // if an error occurs, pass it to the handler
+          .catch(next)
+      })
+      .catch(console.error)
+    BudgetCrawler.populateFormOnIndexPage(pickUpLocation, dropOffLocation, formattedDate)
+      .then(res => {
+        // const tester = Object.assign(prices, PenskeCrawler.priceObj)
+        prices.push(BudgetCrawler.priceObj)
+        return res
+      })
+      .catch(console.error)
+  }
+  const finalPrices = async function () {
+    try {
+      await runCrawlers()
+    } catch (err) {
+      console.error(err)
+    }
+    try {
+      Quote.find({owner: req.user._id})
+        .then(quotes => {
+          // `quotes` will be an array of Mongoose documents
+          // we want to convert each one to a POJO, so we use `.map` to
+          // apply `.toObject` to each one
+          return quotes.map(quote => quote.toObject())
+        })
+        // respond with status 200 and JSON of the quotes
+        .then(quotes => res.status(200).json({ quotes: quotes }))
+        // if an error occurs, pass it to the handler
+        .catch(next)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+  finalPrices()
 })
 
 // DESTROY

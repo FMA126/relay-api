@@ -1,13 +1,15 @@
 const mongoose = require('mongoose')
 
 const personSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true
-  },
-  text: {
-    type: String,
-    required: true
+  name: {
+    first: {
+      type: String,
+      required: true
+    },
+    last: {
+      type: String,
+      required: true
+    }
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
